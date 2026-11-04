@@ -31,4 +31,5 @@ Expanded RED: 13 runtime tests, one failure because a JWKS HTTP 302 body was acc
 GREEN: `mvn -o -B clean verify` passed 109 tests, zero failures/errors/skips, against disposable migrated PostgreSQL.
 Tests use generated RSA keys and HTTP fixtures matching IAM wire formats, not a running IAM deployment.
 Run: `mvn -B -pl patients-app -am -Dtest=PatientsAuthorizationConfigurationTest -Dsurefire.failIfNoSpecifiedTests=false test`.
-Pending: patient HTTP registration/error mapping and deployed IAM/TLS/provider verification.
+Patient HTTP registration/error mapping is delivered in [registration HTTP](registration-http.md).
+Deployed IAM/TLS/provider verification remains pending.
