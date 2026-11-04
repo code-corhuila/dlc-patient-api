@@ -12,5 +12,6 @@ TDD: focused Maven test initially failed for missing implementation; expanded RE
 3 failures (missing audience, trailing JSON, duplicate active). GREEN: 36 tests, zero failures/skips.
 Full regression: `mvn -o -B clean verify` passed 96 tests, zero failures/errors/skips, with disposable migrated PostgreSQL.
 IAM tests use an HTTP fixture and generated RSA keys, not a deployed IAM provider.
-Pending: JWKS retrieval/rotation, runtime wiring, service credential issuance/renewal,
-approved IAM permission mapping, HTTP registration/error mapping and real provider verification.
+Runtime JWKS and use-case wiring are delivered in [runtime connection](authorization-runtime.md).
+Remaining: service credential provisioning/renewal, approved permission mapping, HTTP registration
+and deployed IAM verification.
