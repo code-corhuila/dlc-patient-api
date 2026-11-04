@@ -1,25 +1,68 @@
-# dlc-iam-api
+# dlc-patient-api
 
-> iam bounded context: service API
+> Patients bounded context: service API.
 
-Part of the **LMS Library** distributed system — team `lms-library`, Grupo 2.
-Governance and documentation live in [`library-docs`](https://github.com/code-corhuila/library-docs).
+Part of the **Di-lucca** distributed system — team `di-lucca`, Grupo 2.
+Governance and documentation live in [`dlc-docs`](https://github.com/code-corhuila/dlc-docs);
+the service is described in `09-microservices/services/03-patients-service/` and its
+contract in `07-api/contracts/openapi/patients-service.yaml`.
+
+## Purpose
+
+Owns the unique patient identity, the administrative and contact profile, emergency
+contacts and the active/inactive status (HU-PAT-001). Clinical history belongs to Clinical,
+staff accounts to IAM and appointments to Appointments.
+
+## Architecture
+
+Java 21 and Spring Boot 3.5 (ADR-003), hexagonal with three Maven modules (Norma 5.3, Annex C):
+
+| Module | Content | Depends on |
+|---|---|---|
+| `patients-core` | domain model, ports and use cases | nothing from the project; Spring, JPA, JDBC, AMQP and Jackson are banned by the enforcer |
+| `patients-adapters` | HTTP, persistence, messaging and owner clients | `patients-core` |
+| `patients-app` | composition root, configuration and limits | everything |
+
+## Dependencies
+
+- PostgreSQL instance from [`dlc-infra-postgres`](https://github.com/code-corhuila/dlc-infra-postgres),
+  with the `patients` schema migrated by [`dlc-patient-db`](https://github.com/code-corhuila/dlc-patient-db).
+  This repository holds no migrations (Norma 5.2.1).
+- Staff JWT and session validation from `dlc-iam-api`.
+- Appointments owner contracts for current care relationships and the deactivation guard.
+
+## Run
+
+Build and test (Java 21 and Maven 3.9):
+
+```bash
+mvn -B verify
+```
+
+Without a local Maven, the same build runs in Docker:
+
+```bash
+docker run --rm -v "$PWD:/workspace" -w /workspace maven:3.9.11-eclipse-temurin-21 mvn -B verify
+```
+
+Start the service on the shared `platform` network:
+
+```bash
+cp .env.example .env
+docker compose --env-file .env -f deploy/compose.yml up -d --build --wait
+```
+
+`GET /health` answers `200` without a token.
 
 ## Branching
 
-Three permanent branches. **None of them accepts a direct commit** — you enter through a child
-branch and leave through a Pull Request.
+Three permanent branches; none accepts a direct commit.
 
 ```
-develop  <--PR--  feat/... fix/... chore/...
-qa       <--PR--  qa/...
+develop  <--PR--  feat/... fix/... chore/... docs/...
+qa       <--PR--  promotion/qa-patient-api-N (cherry-pick -x of develop commits)
 main     <--PR--  release/...  hotfix/...
 ```
 
-Promotion happens **by re-application** (`git cherry-pick -x`), never by merging one permanent
-branch into another: `merge develop -> qa` and `merge qa -> main` do not exist in this model.
-
-`main` requires **1 approval from `ariel5253`**. On `develop` and `qa` the team sets its own review
-rule.
-
-Full policy: `00-governance/branching-policy.md` in `library-docs`.
+Promotion happens by re-application (`git cherry-pick -x`), never by merging one permanent
+branch into another. `main` requires the teacher's approval (`.github/CODEOWNERS`).
