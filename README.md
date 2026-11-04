@@ -34,7 +34,8 @@ HTTP registration and concrete authorization remain subsequent increments.
 The [registration application increment](registration-use-case.md) adds the use case,
 authorization and atomic transaction ports, with request fingerprinting and replay results.
 The [authorization adapter](registration-authorization.md) validates JWTs and current IAM sessions.
-Runtime authorization configuration and HTTP wiring remain pending.
+The [IAM runtime connection](authorization-runtime.md) wires authorization and the registration
+use case with remote JWKS and session validation. HTTP registration remains pending.
 
 The [PostgreSQL registration adapter](registration-persistence.md) now implements atomic
 persistence and replay against the existing schema. IAM and HTTP wiring remain pending.
