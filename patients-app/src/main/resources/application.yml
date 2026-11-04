@@ -1,5 +1,18 @@
 spring:
   application:
     name: dlc-patient-api
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
 server:
   port: ${SERVER_PORT:8080}
+  shutdown: graceful
+patients:
+  database:
+    enabled: ${PATIENTS_DB_ENABLED:true}
+    environment: ${PATIENTS_DB_ENVIRONMENT:dev}
+    host: ${PATIENTS_DB_HOST:}
+    port: ${PATIENTS_DB_PORT:5432}
+    name: ${PATIENTS_DB_NAME:}
+    password-file: ${PATIENTS_DB_PASSWORD_FILE:}
+    ssl-mode: ${PATIENTS_DB_SSLMODE:verify-full}
+    ssl-root-cert: ${PATIENTS_DB_SSLROOTCERT:}
