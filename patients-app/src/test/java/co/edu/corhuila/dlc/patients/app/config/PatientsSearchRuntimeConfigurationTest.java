@@ -3,7 +3,9 @@ package co.edu.corhuila.dlc.patients.app.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import co.edu.corhuila.dlc.patients.adapter.out.iam.IamSessionClient;
+import co.edu.corhuila.dlc.patients.application.port.in.ReadPatientUseCase;
 import co.edu.corhuila.dlc.patients.application.port.in.SearchPatientsUseCase;
+import co.edu.corhuila.dlc.patients.application.port.out.PatientReadReader;
 import co.edu.corhuila.dlc.patients.application.port.out.PatientSearchAuthorization;
 import co.edu.corhuila.dlc.patients.application.port.out.PatientSearchReader;
 import java.net.InetSocketAddress;
@@ -28,6 +30,7 @@ class PatientsSearchRuntimeConfigurationTest {
         runner = new ApplicationContextRunner().withUserConfiguration(PatientsSearchRuntimeConfiguration.class)
                 .withBean(JwtDecoder.class, () -> value -> null).withBean(IamSessionClient.class, () -> sessions)
                 .withBean(PatientSearchReader.class, () -> (criteria, scope) -> new PatientSearchReader.Result(java.util.List.of(), 0))
+                .withBean(PatientReadReader.class, () -> (patientId, scope) -> java.util.Optional.empty())
                 .withPropertyValues("patients.iam.base-url=http://iam.test", "patients.iam.environment=dev",
                         "patients.iam.issuer=issuer", "patients.iam.audience=audience", "patients.iam.search-permission=patients:read",
                         "patients.appointments.base-url=http://appointments.test", "patients.appointments.service-token-file=C:/fixture-token");
@@ -39,7 +42,8 @@ class PatientsSearchRuntimeConfigurationTest {
     @Test
     void composesSearchUseCaseAuthorizationAndAssignmentsAdapter() {
         runner.run(context -> assertThat(context).hasNotFailed().hasSingleBean(SearchPatientsUseCase.class)
-                .hasSingleBean(PatientSearchAuthorization.class).hasSingleBean(co.edu.corhuila.dlc.patients.application.port.out.CurrentPatientAssignments.class));
+                .hasSingleBean(ReadPatientUseCase.class).hasSingleBean(PatientSearchAuthorization.class)
+                .hasSingleBean(co.edu.corhuila.dlc.patients.application.port.out.CurrentPatientAssignments.class));
     }
 
     @Test
@@ -56,6 +60,7 @@ class PatientsSearchRuntimeConfigurationTest {
     @Test
     void disabledSearchDoesNotCreateSearchBeans() {
         runner.withPropertyValues("patients.search.enabled=false").run(context -> assertThat(context)
-                .doesNotHaveBean(SearchPatientsUseCase.class).doesNotHaveBean(PatientSearchAuthorization.class));
+                .doesNotHaveBean(SearchPatientsUseCase.class).doesNotHaveBean(ReadPatientUseCase.class)
+                .doesNotHaveBean(PatientSearchAuthorization.class));
     }
 }

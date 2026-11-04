@@ -3,11 +3,14 @@ package co.edu.corhuila.dlc.patients.app.config;
 import co.edu.corhuila.dlc.patients.adapter.out.appointments.AppointmentsAssignmentsClient;
 import co.edu.corhuila.dlc.patients.adapter.out.iam.JwtPatientSearchAuthorization;
 import co.edu.corhuila.dlc.patients.adapter.out.iam.IamSessionClient;
+import co.edu.corhuila.dlc.patients.application.port.in.ReadPatientUseCase;
 import co.edu.corhuila.dlc.patients.application.port.in.SearchPatientsUseCase;
 import co.edu.corhuila.dlc.patients.application.port.out.CurrentPatientAssignments;
+import co.edu.corhuila.dlc.patients.application.port.out.PatientReadReader;
 import co.edu.corhuila.dlc.patients.application.port.out.PatientSearchAuthorization;
 import co.edu.corhuila.dlc.patients.application.port.out.PatientSearchReader;
 import co.edu.corhuila.dlc.patients.application.usecase.SearchPatientsService;
+import co.edu.corhuila.dlc.patients.application.usecase.ReadPatientService;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.nio.file.Files;
@@ -56,6 +59,12 @@ public class PatientsSearchRuntimeConfiguration {
     SearchPatientsUseCase patientsSearchUseCase(PatientSearchAuthorization authorization,
             CurrentPatientAssignments assignments, PatientSearchReader reader) {
         return new SearchPatientsService(authorization, assignments, reader);
+    }
+
+    @Bean
+    ReadPatientUseCase patientsReadUseCase(PatientSearchAuthorization authorization,
+            CurrentPatientAssignments assignments, PatientReadReader reader) {
+        return new ReadPatientService(authorization, assignments, reader);
     }
 
     private static URI appointmentsBase(PatientsAppointmentsSettings settings, String environment) {
