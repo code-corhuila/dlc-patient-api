@@ -23,6 +23,15 @@ Java 21 and Spring Boot 3.5 (ADR-003), hexagonal with three Maven modules (Norma
 | `patients-adapters` | HTTP, persistence, messaging and owner clients | `patients-core` |
 | `patients-app` | composition root, configuration and limits | everything |
 
+## Current increment
+
+The first HU-PAT-001 domain increment lives in `patients-core`: an immutable
+registration aggregate, administrative profile, document and emergency contacts,
+with contract/storage field validation and an injected registration clock.
+See [scope, contract references and TDD evidence](registration-domain.md).
+The HTTP registration endpoint, authorization, persistence and atomic
+audit/outbox/idempotency orchestration remain subsequent increments.
+
 ## Dependencies
 
 - PostgreSQL instance from [`dlc-infra-postgres`](https://github.com/code-corhuila/dlc-infra-postgres),
