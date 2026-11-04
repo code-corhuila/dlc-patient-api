@@ -25,6 +25,7 @@ import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -44,7 +45,7 @@ public class PatientsAuthorizationConfiguration {
     }
 
     @Bean
-    RegistrationAuthorization patientsRegistrationAuthorization(PatientsIamSettings settings, HttpClient patientsIamHttpClient) {
+    JwtDecoder patientsStaffJwtDecoder(PatientsIamSettings settings, HttpClient patientsIamHttpClient) {
         URI origin = origin(settings);
         var transport = new JdkClientHttpRequestFactory(patientsIamHttpClient);
         transport.setReadTimeout(Duration.ofSeconds(5));
@@ -63,9 +64,21 @@ public class PatientsAuthorizationConfiguration {
         var timestamps = new JwtTimestampValidator(Duration.ofSeconds(30));
         timestamps.setClock(clock);
         decoder.setJwtValidator(timestamps);
-        var sessions = new IamSessionClient(origin.resolve("/internal/v1/sessions/validations"),
+        return decoder;
+    }
+
+    @Bean
+    IamSessionClient patientsIamSessionClient(PatientsIamSettings settings, HttpClient patientsIamHttpClient) {
+        URI origin = origin(settings);
+        return new IamSessionClient(origin.resolve("/internal/v1/sessions/validations"),
                 () -> serviceToken(settings.serviceTokenFile()), patientsIamHttpClient, "dev".equals(settings.environment()));
-        return new JwtRegistrationAuthorization(decoder, new JwtRegistrationAuthorization.Policy(
+    }
+
+    @Bean
+    RegistrationAuthorization patientsRegistrationAuthorization(PatientsIamSettings settings, JwtDecoder patientsStaffJwtDecoder,
+            IamSessionClient sessions) {
+        Clock clock = Clock.systemUTC();
+        return new JwtRegistrationAuthorization(patientsStaffJwtDecoder, new JwtRegistrationAuthorization.Policy(
                 settings.issuer(), settings.audience(), settings.registrationPermission()), clock,
                 PatientsAuthorizationConfiguration::requestToken, sessions);
     }
@@ -101,7 +114,7 @@ public class PatientsAuthorizationConfiguration {
         }
     }
 
-    private static String requestToken() {
+    static String requestToken() {
         if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) return null;
         var headers = Collections.list(attributes.getRequest().getHeaders("Authorization"));
         if (headers.size() != 1 || !headers.getFirst().matches("(?i)Bearer [A-Za-z0-9_.-]+")) return null;

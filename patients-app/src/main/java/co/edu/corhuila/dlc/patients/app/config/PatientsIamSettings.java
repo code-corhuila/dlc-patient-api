@@ -4,5 +4,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("patients.iam")
 public record PatientsIamSettings(String baseUrl, String environment, String issuer, String audience,
-        String registrationPermission, String serviceTokenFile) {
+        String registrationPermission, String searchPermission, String serviceTokenFile) {
 }

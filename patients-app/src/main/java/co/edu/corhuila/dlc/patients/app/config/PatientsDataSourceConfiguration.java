@@ -1,6 +1,8 @@
 package co.edu.corhuila.dlc.patients.app.config;
 
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcRegistrationTransaction;
+import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientSearchReader;
+import co.edu.corhuila.dlc.patients.application.port.out.PatientSearchReader;
 import co.edu.corhuila.dlc.patients.application.port.out.RegistrationTransaction;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.IOException;
@@ -55,6 +57,11 @@ public class PatientsDataSourceConfiguration {
     @Bean
     RegistrationTransaction patientsRegistrationTransaction(DataSource source) {
         return new JdbcRegistrationTransaction(source);
+    }
+
+    @Bean
+    PatientSearchReader patientsSearchReader(DataSource source) {
+        return new JdbcPatientSearchReader(source);
     }
 
     private static String endpoint(PatientsDatabaseSettings settings) {
