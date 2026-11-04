@@ -1,0 +1,24 @@
+# Service only: the database lives in dlc-infra-postgres (Annex J.3.1) and its schema in dlc-patient-db.
+services:
+  patients-api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: dlc-patient-api:local
+    restart: unless-stopped
+    env_file: ../.env
+    expose:
+      - "${SERVER_PORT:-8080}"
+    healthcheck:
+      # The JRE image has no curl; bash (not dash) provides /dev/tcp.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/${SERVER_PORT:-8080} && printf 'GET /health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [platform]
+
+networks:
+  platform:
+    name: ${PLATFORM_NETWORK:-platform}
+    external: true
