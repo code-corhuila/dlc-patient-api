@@ -29,12 +29,14 @@ The first HU-PAT-001 domain increment lives in `patients-core`: an immutable
 registration aggregate, administrative profile, document and emergency contacts,
 with contract/storage field validation and an injected registration clock.
 See [scope, contract references and TDD evidence](registration-domain.md).
-The HTTP registration endpoint, authorization, persistence and atomic
-audit/outbox/idempotency orchestration remain subsequent increments.
+HTTP registration and concrete authorization remain subsequent increments.
 
 The [registration application increment](registration-use-case.md) adds the use case,
 authorization and atomic transaction ports, with request fingerprinting and replay results.
-Concrete authorization/persistence adapters and HTTP wiring remain pending.
+Concrete authorization adapters and HTTP wiring remain pending.
+
+The [PostgreSQL registration adapter](registration-persistence.md) now implements atomic
+persistence and replay against the existing schema. Runtime DataSource, IAM and HTTP wiring remain pending.
 
 ## Dependencies
 
