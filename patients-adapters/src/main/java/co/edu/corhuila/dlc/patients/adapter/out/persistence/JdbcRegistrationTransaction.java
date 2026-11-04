@@ -3,6 +3,7 @@ package co.edu.corhuila.dlc.patients.adapter.out.persistence;
 import co.edu.corhuila.dlc.patients.application.model.RegistrationConflictException;
 import co.edu.corhuila.dlc.patients.application.model.RegistrationConflictException.Reason;
 import co.edu.corhuila.dlc.patients.application.model.RegistrationResult;
+import co.edu.corhuila.dlc.patients.application.model.RegistrationUnavailableException;
 import co.edu.corhuila.dlc.patients.application.port.out.RegistrationTransaction;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -42,18 +43,18 @@ public final class JdbcRegistrationTransaction implements RegistrationTransactio
                 try {
                     connection.rollback();
                 } catch (SQLException rollbackFailure) {
-                    throw new IllegalStateException("Registration rollback could not be confirmed");
+                    throw new RegistrationUnavailableException("Registration rollback could not be confirmed");
                 }
                 if (failure instanceof RegistrationConflictException conflict) {
                     throw conflict;
                 }
-                throw new IllegalStateException("Registration persistence failed");
+                throw new RegistrationUnavailableException("Registration persistence failed");
             } finally {
                 connection.setAutoCommit(autoCommit);
                 connection.setTransactionIsolation(isolation);
             }
         } catch (SQLException failure) {
-            throw new IllegalStateException("Registration connection failed");
+            throw new RegistrationUnavailableException("Registration connection failed");
         }
     }
 
