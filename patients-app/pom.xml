@@ -15,6 +15,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+        </dependency>
+        <dependency>
             <groupId>co.edu.corhuila.dlc</groupId>
             <artifactId>patients-core</artifactId>
             <version>${project.version}</version>
