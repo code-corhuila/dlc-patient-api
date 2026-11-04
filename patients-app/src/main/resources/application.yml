@@ -14,7 +14,13 @@ patients:
     issuer: ${PATIENTS_IAM_ISSUER:}
     audience: ${PATIENTS_IAM_AUDIENCE:}
     registration-permission: ${PATIENTS_IAM_REGISTRATION_PERMISSION:}
+    search-permission: ${PATIENTS_IAM_SEARCH_PERMISSION:}
     service-token-file: ${PATIENTS_IAM_SERVICE_TOKEN_FILE:}
+  search:
+    enabled: ${PATIENTS_SEARCH_ENABLED:true}
+  appointments:
+    base-url: ${PATIENTS_APPOINTMENTS_BASE_URL:}
+    service-token-file: ${PATIENTS_APPOINTMENTS_SERVICE_TOKEN_FILE:}
   database:
     enabled: ${PATIENTS_DB_ENABLED:true}
     environment: ${PATIENTS_DB_ENVIRONMENT:dev}

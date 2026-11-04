@@ -49,6 +49,8 @@ The [administrative search use case](administrative-search-use-case.md) adds pag
 reads and minimal Dentist projections in the core.
 The [search persistence adapter](administrative-search-persistence.md) provides scoped PostgreSQL reads;
 authorization/assignment adapters, runtime composition and the GET route remain pending.
+The [search runtime connection](search-runtime.md) now composes authorization and current assignments;
+the GET route remains pending.
 
 ## Dependencies
 

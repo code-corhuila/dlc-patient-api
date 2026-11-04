@@ -11,6 +11,7 @@ services:
     environment:
       PATIENTS_DB_PASSWORD_FILE: /run/secrets/patients/password
       PATIENTS_IAM_SERVICE_TOKEN_FILE: /run/secrets/iam/service-token
+      PATIENTS_APPOINTMENTS_SERVICE_TOKEN_FILE: /run/secrets/appointments/service-token
     volumes:
       - type: bind
         source: ${PATIENTS_IAM_SECRETS_DIR:?set PATIENTS_IAM_SECRETS_DIR}
@@ -21,6 +22,12 @@ services:
       - type: bind
         source: ${PATIENTS_DB_SECRETS_DIR:?set PATIENTS_DB_SECRETS_DIR}
         target: /run/secrets/patients
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${PATIENTS_APPOINTMENTS_SECRETS_DIR:?set PATIENTS_APPOINTMENTS_SECRETS_DIR}
+        target: /run/secrets/appointments
         read_only: true
         bind:
           create_host_path: false
