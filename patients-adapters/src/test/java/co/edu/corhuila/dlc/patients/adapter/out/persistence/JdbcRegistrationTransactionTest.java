@@ -8,6 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import co.edu.corhuila.dlc.patients.application.model.RegistrationConflictException;
 import co.edu.corhuila.dlc.patients.application.model.RegistrationResult;
 import co.edu.corhuila.dlc.patients.application.port.out.RegistrationTransaction.Write;
+import co.edu.corhuila.dlc.patients.application.usecase.RegisterPatientService;
+import co.edu.corhuila.dlc.patients.adapter.in.http.PatientRegistrationController;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import co.edu.corhuila.dlc.patients.domain.model.Document;
 import co.edu.corhuila.dlc.patients.domain.model.EmergencyContact;
 import co.edu.corhuila.dlc.patients.domain.model.Patient;
@@ -43,6 +49,27 @@ class JdbcRegistrationTransactionTest {
         assertTrue(sql("SELECT current_database()").matches("patients_api_test_[a-f0-9]+"));
         assertEquals("patients_app", sql("SELECT current_user"));
         transaction = new JdbcRegistrationTransaction(source);
+    }
+
+    @Test
+    void httpCreationAndReplayCommitOnePatientAuditAndEvent() throws Exception {
+        var json = new ObjectMapper();
+        var service = new RegisterPatientService(() -> actor, transaction, Clock.systemUTC(), UUID::randomUUID);
+        var http = MockMvcBuilders.standaloneSetup(new PatientRegistrationController(service, () -> actor, json)).build();
+        String body = "{\"documentType\":\"CC\",\"documentNumber\":\"" + UUID.randomUUID()
+                + "\",\"name\":\"Synthetic\",\"birthDate\":\"2000-01-01\",\"phone\":\"000\",\"email\":\"fixture@example.invalid\"}";
+        String key = UUID.randomUUID().toString();
+        var first = http.perform(post("/api/v1/patients").contentType("application/json").header("Idempotency-Key", key).content(body))
+                .andExpect(status().isCreated()).andReturn().getResponse();
+        var replay = http.perform(post("/api/v1/patients").contentType("application/json").header("Idempotency-Key", key).content(body))
+                .andExpect(status().isOk()).andReturn().getResponse();
+        assertEquals(json.readTree(first.getContentAsString()), json.readTree(replay.getContentAsString()));
+        assertEquals("/api/v1/patients/" + json.readTree(first.getContentAsString()).get("id").asText(), first.getHeader("Location"));
+        for (var table : List.of("patient", "patient_audit", "outbox_event")) {
+            String column = table.equals("patient") ? "created_by" : table.equals("patient_audit") ? "actor_id" : "actor_user_id";
+            assertEquals("1", sql("SELECT count(*) FROM patients." + table + " WHERE " + column + "=?", actor));
+        }
+        assertEquals("1", sql("SELECT count(*) FROM patients.idempotency_record WHERE actor_subject=?", actor.toString()));
     }
 
     @Test
