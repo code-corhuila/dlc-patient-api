@@ -32,6 +32,10 @@ See [scope, contract references and TDD evidence](registration-domain.md).
 The HTTP registration endpoint, authorization, persistence and atomic
 audit/outbox/idempotency orchestration remain subsequent increments.
 
+The [registration application increment](registration-use-case.md) adds the use case,
+authorization and atomic transaction ports, with request fingerprinting and replay results.
+Concrete authorization/persistence adapters and HTTP wiring remain pending.
+
 ## Dependencies
 
 - PostgreSQL instance from [`dlc-infra-postgres`](https://github.com/code-corhuila/dlc-infra-postgres),
