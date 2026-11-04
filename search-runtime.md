@@ -10,10 +10,12 @@ authority or missing credential fails closed.
 
 The search JWT requires the configured search permission and maps Administrator/Assistant to the
 administrative view and Dentist to the restricted care projection. Sessions are revalidated per request.
-The public `GET /patients` controller is still a separate increment; this change only composes its use case.
+The public `GET /api/v1/patients` controller maps the documented query parameters, pagination metadata,
+administrative projection and Dentist care projection without exposing clinical fields.
 Set `PATIENTS_IAM_SEARCH_PERMISSION`, `PATIENTS_APPOINTMENTS_BASE_URL`, and the read-only
 `PATIENTS_APPOINTMENTS_SECRETS_DIR` mount before enabling runtime search. The approved permission and
 deployed Appointments service credential remain deployment requirements.
 
-TDD GREEN: runtime composition tests cover bean wiring, disabled search, missing permission and HTTPS policy.
+TDD GREEN: runtime composition and HTTP tests cover bean wiring, disabled search, missing permission, HTTPS policy,
+query mapping, projections and sanitized error responses.
 The full regression remains the release check with disposable PostgreSQL.
