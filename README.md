@@ -45,6 +45,9 @@ The [runtime DataSource configuration](database-runtime.md) wires the pool and t
 adapter. Configure the external secret directory before starting Compose; DB configuration
 is now required by default. The health endpoint remains liveness only.
 
+The [administrative search use case](administrative-search-use-case.md) adds paginated, scope-aware
+reads and minimal Dentist projections in the core; its concrete adapters and GET route remain pending.
+
 ## Dependencies
 
 - PostgreSQL instance from [`dlc-infra-postgres`](https://github.com/code-corhuila/dlc-infra-postgres),
