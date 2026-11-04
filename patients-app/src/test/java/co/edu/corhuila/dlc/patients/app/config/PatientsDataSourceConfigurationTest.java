@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcRegistrationTransaction;
+import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientReadReader;
 import co.edu.corhuila.dlc.patients.application.port.out.RegistrationTransaction;
+import co.edu.corhuila.dlc.patients.application.port.out.PatientReadReader;
 import co.edu.corhuila.dlc.patients.domain.model.Document;
 import co.edu.corhuila.dlc.patients.domain.model.Patient;
 import co.edu.corhuila.dlc.patients.domain.model.PatientProfile;
@@ -69,6 +71,7 @@ class PatientsDataSourceConfigurationTest {
             assertEquals("-c statement_timeout=5000", pool.getDataSourceProperties().getProperty("options"));
             assertNull(pool.getHikariPoolMXBean());
             assertInstanceOf(JdbcRegistrationTransaction.class, context.getBean(RegistrationTransaction.class));
+            assertInstanceOf(JdbcPatientReadReader.class, context.getBean(PatientReadReader.class));
         });
         assertTrue(reference.get().isClosed());
     }
