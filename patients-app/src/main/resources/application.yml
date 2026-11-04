@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: dlc-patient-api
+server:
+  port: ${SERVER_PORT:8080}
