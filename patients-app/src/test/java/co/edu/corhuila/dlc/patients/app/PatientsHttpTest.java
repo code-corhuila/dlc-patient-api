@@ -13,7 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 /** Annex C, "Autenticación": /health answers without a token. */
-@SpringBootTest(properties = "patients.database.enabled=false")
+@SpringBootTest(properties = {"patients.database.enabled=false", "patients.iam.enabled=false"})
 @AutoConfigureMockMvc
 class PatientsHttpTest {
 
