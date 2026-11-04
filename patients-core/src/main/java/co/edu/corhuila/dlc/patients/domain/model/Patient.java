@@ -31,6 +31,14 @@ public final class Patient {
         return new Patient(id, document, profile);
     }
 
+    /** Rehydrate a committed registration without reinterpreting its original date validation. */
+    public static Patient restoreRegistration(UUID id, Document document, PatientProfile profile) {
+        PatientFields.required("id", id);
+        PatientFields.required("document", document);
+        PatientFields.required("profile", profile);
+        return new Patient(id, document, profile);
+    }
+
     public UUID id() {
         return id;
     }
