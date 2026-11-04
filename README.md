@@ -36,7 +36,11 @@ authorization and atomic transaction ports, with request fingerprinting and repl
 Concrete authorization adapters and HTTP wiring remain pending.
 
 The [PostgreSQL registration adapter](registration-persistence.md) now implements atomic
-persistence and replay against the existing schema. Runtime DataSource, IAM and HTTP wiring remain pending.
+persistence and replay against the existing schema. IAM and HTTP wiring remain pending.
+
+The [runtime DataSource configuration](database-runtime.md) wires the pool and transaction
+adapter. Configure the external secret directory before starting Compose; DB configuration
+is now required by default. The health endpoint remains liveness only.
 
 ## Dependencies
 

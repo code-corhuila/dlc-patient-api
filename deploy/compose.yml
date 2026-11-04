@@ -6,7 +6,17 @@ services:
       dockerfile: deploy/Dockerfile
     image: dlc-patient-api:local
     restart: unless-stopped
+    stop_grace_period: 30s
     env_file: ../.env
+    environment:
+      PATIENTS_DB_PASSWORD_FILE: /run/secrets/patients/password
+    volumes:
+      - type: bind
+        source: ${PATIENTS_DB_SECRETS_DIR:?set PATIENTS_DB_SECRETS_DIR}
+        target: /run/secrets/patients
+        read_only: true
+        bind:
+          create_host_path: false
     expose:
       - "${SERVER_PORT:-8080}"
     healthcheck:
