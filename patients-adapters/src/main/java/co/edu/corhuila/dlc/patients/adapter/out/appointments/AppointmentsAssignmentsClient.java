@@ -27,7 +27,7 @@ public final class AppointmentsAssignmentsClient implements CurrentPatientAssign
 
     @Override
     public Snapshot currentFor(UUID dentistId) {
-        var ids = new HashSet<UUID>(); long version = -1; int page = 1;
+        var ids = new HashSet<UUID>(); long version = -1; int page = 1; long expectedTotal = -1;
         try {
             while (true) {
                 String token = credential.get();
@@ -55,8 +55,13 @@ public final class AppointmentsAssignmentsClient implements CurrentPatientAssign
                 if (!meta.isObject() || meta.size() != 4 || meta.path("page").asInt(-1) != page
                         || meta.path("limit").asInt(-1) != 100 || meta.path("total").asInt(-1) < 0
                         || meta.path("totalPages").asInt(-1) < 0) throw unavailable();
+                long total = meta.path("total").asLong();
                 int totalPages = meta.path("totalPages").asInt();
-                if (totalPages < page || page >= totalPages) return new Snapshot(dentistId, version, ids);
+                if (totalPages != (total + 99) / 100 || expectedTotal != -1 && total != expectedTotal
+                        || body.get("data").size() != Math.min(100, Math.max(0, total - (long) (page - 1) * 100))
+                        || ids.size() != Math.min(total, (long) page * 100)) throw unavailable();
+                expectedTotal = total;
+                if (page >= totalPages) return new Snapshot(dentistId, version, ids);
                 page++;
             }
         } catch (InterruptedException interrupted) {

@@ -48,7 +48,9 @@ public final class PatientUpdateController {
         } catch (PatientNotFoundException failure) {
             return error(404, "NOT_FOUND", "Patient not found", traceId);
         } catch (PatientUpdateConflictException failure) {
-            return error(409, failure.reason().name(), "Patient update conflict", traceId);
+            String code = failure.reason() == PatientUpdateConflictException.Reason.VERSION_CONFLICT
+                    ? "STALE_VERSION" : failure.reason().name();
+            return error(409, code, "Patient update conflict", traceId);
         } catch (PatientUpdateUnavailableException failure) {
             return error(503, "SERVICE_UNAVAILABLE", "Patient update is temporarily unavailable", traceId);
         } catch (IOException | IllegalArgumentException | DateTimeException failure) {
