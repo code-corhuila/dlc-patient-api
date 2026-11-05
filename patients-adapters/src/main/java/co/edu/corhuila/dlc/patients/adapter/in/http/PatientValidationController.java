@@ -13,9 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-// Not registered until a private listener and service-token verifier are configured.
 @RestController
-@org.springframework.boot.autoconfigure.condition.ConditionalOnBean(PatientServiceAuthorization.class)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "patients.internal", name = "enabled", havingValue = "true")
 public final class PatientValidationController {
     private final PatientServiceAuthorization authorization;
     private final ValidatePatientUseCase validation;
