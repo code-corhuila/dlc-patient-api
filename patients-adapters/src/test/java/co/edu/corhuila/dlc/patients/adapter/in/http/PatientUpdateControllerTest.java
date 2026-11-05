@@ -51,6 +51,13 @@ class PatientUpdateControllerTest {
                 .andExpect(status().isUnauthorized()).andExpect(header().string("WWW-Authenticate", "Bearer realm=\"di-lucca\""));
     }
 
+    @Test void staleVersionUsesDocumentedErrorCode() throws Exception {
+        failure = new PatientUpdateConflictException(PatientUpdateConflictException.Reason.VERSION_CONFLICT);
+        MockMvcBuilders.standaloneSetup(controller).build()
+                .perform(patch("/api/v1/patients/" + id).contentType("application/json").content("{\"expectedVersion\":1,\"name\":\"Test\"}"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.error").value("STALE_VERSION"));
+    }
+
     @Test void mapsFailuresWithoutExposingDetails() throws Exception {
         var mvc = MockMvcBuilders.standaloneSetup(controller).build();
         for (var f : List.of(new PatientNotFoundException(), new PatientUpdateConflictException(PatientUpdateConflictException.Reason.VERSION_CONFLICT),
