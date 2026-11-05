@@ -18,6 +18,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import co.edu.corhuila.dlc.patients.application.model.AuthorizationFailure;
+import co.edu.corhuila.dlc.patients.adapter.in.http.PatientUpdateController;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 class PatientsUpdateRuntimeConfigurationTest {
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
@@ -31,6 +33,11 @@ class PatientsUpdateRuntimeConfigurationTest {
     @Test void createsUpdateBeansWhenConfigured() {
         runner.run(context -> assertThat(context).hasNotFailed().hasSingleBean(UpdatePatientUseCase.class)
                 .hasSingleBean(PatientUpdateAuthorization.class));
+    }
+    @Test void enabledRuntimeCanConstructHttpController() {
+        runner.withBean(ObjectMapper.class, ObjectMapper::new)
+                .withUserConfiguration(PatientUpdateController.class)
+                .run(context -> assertThat(context).hasNotFailed().hasSingleBean(PatientUpdateController.class));
     }
     @Test void missingPermissionFailsClosed() {
         runner.withPropertyValues("patients.iam.update-permission=").run(context -> assertThat(context).hasFailed());
