@@ -2,6 +2,10 @@ package co.edu.corhuila.dlc.patients.app.config;
 
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcRegistrationTransaction;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientReadReader;
+import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientValidationReader;
+import co.edu.corhuila.dlc.patients.application.port.out.PatientValidationReader;
+import co.edu.corhuila.dlc.patients.application.port.in.ValidatePatientUseCase;
+import co.edu.corhuila.dlc.patients.application.usecase.PatientValidationService;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcDeactivationIntentStore;
 import co.edu.corhuila.dlc.patients.application.port.out.DeactivationIntentStore;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientUpdateTransaction;
@@ -73,6 +77,16 @@ public class PatientsDataSourceConfiguration {
     @Bean
     PatientReadReader patientsReadReader(DataSource source) {
         return new JdbcPatientReadReader(source);
+    }
+
+    @Bean
+    PatientValidationReader patientsValidationReader(DataSource source) {
+        return new JdbcPatientValidationReader(source);
+    }
+
+    @Bean
+    ValidatePatientUseCase patientsValidatePatientUseCase(PatientValidationReader reader) {
+        return new PatientValidationService(reader);
     }
 
     @Bean

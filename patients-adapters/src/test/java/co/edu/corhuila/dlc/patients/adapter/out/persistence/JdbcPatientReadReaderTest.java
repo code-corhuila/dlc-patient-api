@@ -36,6 +36,11 @@ class JdbcPatientReadReaderTest {
             }
         }
         var reader = new JdbcPatientReadReader(source);
+        var validation = new JdbcPatientValidationReader(source);
+        var state = validation.find(patient).orElseThrow();
+        assertTrue(state.active());
+        assertEquals(1, state.version());
+        assertTrue(validation.find(UUID.randomUUID()).isEmpty());
         var admin = new Scope(new Access(actor, View.ADMINISTRATIVE), Set.of());
         var care = new Scope(new Access(actor, View.CARE), Set.of(patient));
         var row = reader.findById(patient, admin);
