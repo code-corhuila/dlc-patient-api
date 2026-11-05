@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcRegistrationTransaction;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientReadReader;
+import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcDeactivationIntentStore;
+import co.edu.corhuila.dlc.patients.application.port.out.DeactivationIntentStore;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientUpdateTransaction;
 import co.edu.corhuila.dlc.patients.application.port.out.PatientUpdateTransaction;
 import co.edu.corhuila.dlc.patients.application.port.out.RegistrationTransaction;
@@ -74,6 +76,7 @@ class PatientsDataSourceConfigurationTest {
             assertNull(pool.getHikariPoolMXBean());
             assertInstanceOf(JdbcRegistrationTransaction.class, context.getBean(RegistrationTransaction.class));
             assertInstanceOf(JdbcPatientReadReader.class, context.getBean(PatientReadReader.class));
+            assertInstanceOf(JdbcDeactivationIntentStore.class, context.getBean(DeactivationIntentStore.class));
             assertInstanceOf(JdbcPatientUpdateTransaction.class, context.getBean(PatientUpdateTransaction.class));
         });
         assertTrue(reference.get().isClosed());
