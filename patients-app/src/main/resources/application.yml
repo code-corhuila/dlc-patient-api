@@ -15,9 +15,12 @@ patients:
     audience: ${PATIENTS_IAM_AUDIENCE:}
     registration-permission: ${PATIENTS_IAM_REGISTRATION_PERMISSION:}
     search-permission: ${PATIENTS_IAM_SEARCH_PERMISSION:}
+    update-permission: ${PATIENTS_IAM_UPDATE_PERMISSION:}
     service-token-file: ${PATIENTS_IAM_SERVICE_TOKEN_FILE:}
   search:
     enabled: ${PATIENTS_SEARCH_ENABLED:true}
+  update:
+    enabled: ${PATIENTS_UPDATE_ENABLED:false}
   appointments:
     base-url: ${PATIENTS_APPOINTMENTS_BASE_URL:}
     service-token-file: ${PATIENTS_APPOINTMENTS_SERVICE_TOKEN_FILE:}
