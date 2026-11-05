@@ -50,7 +50,7 @@ public class PatientsSearchRuntimeConfiguration {
 
     @Bean
     CurrentPatientAssignments patientsCurrentAssignments(PatientsAppointmentsSettings settings, PatientsIamSettings iam,
-            HttpClient patientsAppointmentsHttpClient) {
+            @org.springframework.beans.factory.annotation.Qualifier("patientsAppointmentsHttpClient") HttpClient patientsAppointmentsHttpClient) {
         URI base = appointmentsBase(settings, iam.environment());
         return new AppointmentsAssignmentsClient(base, fileToken(settings.serviceTokenFile()), patientsAppointmentsHttpClient);
     }
