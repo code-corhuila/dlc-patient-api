@@ -2,6 +2,8 @@ package co.edu.corhuila.dlc.patients.app.config;
 
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcRegistrationTransaction;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientReadReader;
+import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcDeactivationIntentStore;
+import co.edu.corhuila.dlc.patients.application.port.out.DeactivationIntentStore;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientUpdateTransaction;
 import co.edu.corhuila.dlc.patients.application.port.out.PatientUpdateTransaction;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientSearchReader;
@@ -71,6 +73,11 @@ public class PatientsDataSourceConfiguration {
     @Bean
     PatientReadReader patientsReadReader(DataSource source) {
         return new JdbcPatientReadReader(source);
+    }
+
+    @Bean
+    DeactivationIntentStore patientsDeactivationIntentStore(DataSource source) {
+        return new JdbcDeactivationIntentStore(source);
     }
 
     @Bean
