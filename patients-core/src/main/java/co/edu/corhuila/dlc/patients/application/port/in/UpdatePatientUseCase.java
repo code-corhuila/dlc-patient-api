@@ -6,5 +6,5 @@ import java.util.UUID;
 
 public interface UpdatePatientUseCase {
     PatientReadResult.Administrative update(Command command);
-    record Command(UUID patientId, int expectedVersion, PatientProfilePatch patch) { }
+    record Command(UUID patientId, int expectedVersion, PatientProfilePatch patch, UUID correlationId, UUID causationId) { }
 }

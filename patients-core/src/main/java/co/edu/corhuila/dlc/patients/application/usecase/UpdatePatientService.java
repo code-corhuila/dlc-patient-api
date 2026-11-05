@@ -21,9 +21,9 @@ public final class UpdatePatientService implements UpdatePatientUseCase {
     }
     @Override public PatientReadResult.Administrative update(Command command) {
         UUID actor = Objects.requireNonNull(authorization.requireAuthorizedActor());
-        if (command == null || command.patientId() == null || command.patch() == null || command.expectedVersion() < 1)
+        if (command == null || command.patientId() == null || command.patch() == null || command.correlationId() == null || command.causationId() == null || command.expectedVersion() < 1)
             throw new InvalidPatientDataException("command", "patient id, patch and positive version required");
         return Objects.requireNonNull(transaction.update(new PatientUpdateTransaction.Write(command.patientId(), command.expectedVersion(),
-                command.patch(), actor, Objects.requireNonNull(ids.get()), Objects.requireNonNull(ids.get()), clock.instant())));
+                command.patch(), actor, Objects.requireNonNull(ids.get()), Objects.requireNonNull(ids.get()), clock.instant(), command.correlationId(), command.causationId())));
     }
 }

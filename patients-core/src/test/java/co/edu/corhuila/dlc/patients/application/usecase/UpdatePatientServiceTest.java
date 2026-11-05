@@ -17,10 +17,12 @@ class UpdatePatientServiceTest {
         var captured = new AtomicReference<PatientUpdateTransaction.Write>();
         var service = new UpdatePatientService(() -> actor, write -> { captured.set(write); return null; }, Clock.systemUTC(), UUID::randomUUID);
         var patch = new PatientProfilePatch(null, null, "New", null, null, null, null, null);
-        assertThrows(NullPointerException.class, () -> service.update(new UpdatePatientUseCase.Command(patient, 2, patch)));
+        var correlation = UUID.randomUUID(); var causation = UUID.randomUUID();
+        assertThrows(NullPointerException.class, () -> service.update(new UpdatePatientUseCase.Command(patient, 2, patch, correlation, causation)));
         assertEquals(actor, captured.get().actorId());
         assertEquals(2, captured.get().expectedVersion());
         assertNotNull(captured.get().auditId());
+        assertEquals(correlation, captured.get().correlationId()); assertEquals(causation, captured.get().causationId());
     }
 
     @Test void appliesOnlySuppliedFieldsAndRejectsNoChange() {
