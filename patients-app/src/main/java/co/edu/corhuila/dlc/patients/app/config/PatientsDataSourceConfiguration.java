@@ -2,6 +2,8 @@ package co.edu.corhuila.dlc.patients.app.config;
 
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcRegistrationTransaction;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientReadReader;
+import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientUpdateTransaction;
+import co.edu.corhuila.dlc.patients.application.port.out.PatientUpdateTransaction;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientSearchReader;
 import co.edu.corhuila.dlc.patients.application.port.out.PatientReadReader;
 import co.edu.corhuila.dlc.patients.application.port.out.PatientSearchReader;
@@ -69,6 +71,11 @@ public class PatientsDataSourceConfiguration {
     @Bean
     PatientReadReader patientsReadReader(DataSource source) {
         return new JdbcPatientReadReader(source);
+    }
+
+    @Bean
+    PatientUpdateTransaction patientsUpdateTransaction(DataSource source) {
+        return new JdbcPatientUpdateTransaction(source);
     }
 
     private static String endpoint(PatientsDatabaseSettings settings) {
