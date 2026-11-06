@@ -25,7 +25,7 @@ public final class PatientReadController {
 
     @GetMapping(path = "/api/v1/patients/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> read(@PathVariable("id") String rawId) {
-        UUID traceId = UUID.randomUUID();
+        UUID traceId = RequestCorrelation.current();
         try {
             UUID id = UUID.fromString(rawId);
             if (!id.toString().equalsIgnoreCase(rawId)) throw new IllegalArgumentException();

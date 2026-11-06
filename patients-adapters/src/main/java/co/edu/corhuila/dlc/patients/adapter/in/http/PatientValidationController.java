@@ -24,7 +24,7 @@ public final class PatientValidationController {
     }
     @GetMapping("/internal/v1/patients/{id}/validation")
     public ResponseEntity<?> validate(@PathVariable("id") String rawId) {
-        UUID trace = UUID.randomUUID();
+        UUID trace = RequestCorrelation.current();
         try {
             authorization.requireValidationScope();
             UUID id = UUID.fromString(rawId);
