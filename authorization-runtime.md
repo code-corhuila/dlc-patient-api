@@ -20,10 +20,12 @@ Patients rereads the file per IAM call; replace it atomically within the mounted
 Patients holds no IAM signing private key and never reads the IAM schema directly.
 IAM configuration is required by default; disabling it creates no registration use-case bean.
 
-Provider gaps: RsaAccessTokenIssuer currently emits `permissions: []`; registration therefore
-remains FORBIDDEN until IAM supplies an approved registration permission. No role-only bypass exists.
-IAM DB contains account/session/role data, but no registration permission catalog was found.
-Service credential issuance/renewal and the final permission mapping need owner/deployment agreement.
+Auth [PR #83](https://github.com/code-corhuila/dlc-iam-api/pull/83) issues the approved
+`patients:register`, `patients:read` and `patients:write` claims from current roles.
+Until that PR is merged and deployed, Auth `develop` may still issue `permissions: []` and
+these operations remain forbidden. Patients accepts only the exact approved permission
+names and still checks the current IAM session and owner-side role/assignment rules.
+Service credential issuance and renewal remain deployment responsibilities.
 IAM has no Compose service here; do not assume a deployed hostname or working shared network.
 
 TDD RED: focused Maven test failed compilation because PatientsAuthorizationConfiguration was absent.

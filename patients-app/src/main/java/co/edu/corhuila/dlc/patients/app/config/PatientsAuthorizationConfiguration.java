@@ -37,6 +37,7 @@ public class PatientsAuthorizationConfiguration {
     @Bean(destroyMethod = "close")
     HttpClient patientsIamHttpClient(PatientsIamSettings settings) {
         origin(settings);
+        PatientsIamSettings.requireApprovedPermission(settings.registrationPermission(), "patients:register");
         new JwtRegistrationAuthorization.Policy(settings.issuer(), settings.audience(), settings.registrationPermission());
         try { serviceToken(settings.serviceTokenFile()); }
         catch (AuthorizationFailure failure) { throw new IllegalStateException("Set a readable IAM service token file"); }
