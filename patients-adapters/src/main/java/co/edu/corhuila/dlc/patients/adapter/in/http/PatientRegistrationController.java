@@ -38,7 +38,7 @@ public final class PatientRegistrationController {
 
     @PostMapping(path = "/api/v1/patients", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> register(HttpServletRequest request) {
-        UUID traceId = UUID.randomUUID();
+        UUID traceId = RequestCorrelation.current();
         try {
             // Reject unauthorized callers before parsing; the use case independently rechecks before writing/replay.
             authorization.requireAuthorizedActor();
