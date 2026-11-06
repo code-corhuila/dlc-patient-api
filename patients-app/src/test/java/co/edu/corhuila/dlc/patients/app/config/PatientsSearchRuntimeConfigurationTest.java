@@ -49,6 +49,7 @@ class PatientsSearchRuntimeConfigurationTest {
     @Test
     void missingSearchPermissionFailsClosedAtStartup() {
         runner.withPropertyValues("patients.iam.search-permission=").run(context -> assertThat(context).hasFailed());
+        runner.withPropertyValues("patients.iam.search-permission=patients:write").run(context -> assertThat(context).hasFailed());
     }
 
     @Test
