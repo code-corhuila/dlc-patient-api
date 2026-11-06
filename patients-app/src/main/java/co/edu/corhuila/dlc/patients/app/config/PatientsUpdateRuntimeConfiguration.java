@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 public class PatientsUpdateRuntimeConfiguration {
     @Bean
     PatientUpdateAuthorization patientsUpdateAuthorization(JwtDecoder decoder, PatientsIamSettings settings, IamSessionClient session) {
+        PatientsIamSettings.requireApprovedPermission(settings.updatePermission(), "patients:write");
         var policy = new JwtRegistrationAuthorization.Policy(settings.issuer(), settings.audience(), settings.updatePermission());
         var verifier = new JwtRegistrationAuthorization(decoder, policy, Clock.systemUTC(),
                 PatientsAuthorizationConfiguration::requestToken, session);

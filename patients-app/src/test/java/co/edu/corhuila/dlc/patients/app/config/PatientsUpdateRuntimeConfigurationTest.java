@@ -41,6 +41,7 @@ class PatientsUpdateRuntimeConfigurationTest {
     }
     @Test void missingPermissionFailsClosed() {
         runner.withPropertyValues("patients.iam.update-permission=").run(context -> assertThat(context).hasFailed());
+        runner.withPropertyValues("patients.iam.update-permission=patients:read").run(context -> assertThat(context).hasFailed());
     }
     @Test void disabledUpdateDoesNotCreateBeans() {
         runner.withPropertyValues("patients.update.enabled=false").run(context -> assertThat(context)

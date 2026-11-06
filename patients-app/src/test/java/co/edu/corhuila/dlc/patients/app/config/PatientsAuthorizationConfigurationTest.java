@@ -103,8 +103,8 @@ class PatientsAuthorizationConfigurationTest {
 
     @Test
     void wiresUseCaseAndRefreshesUnknownSigningKeyAndServiceCredential() throws Exception {
-        String initial = token(first, List.of("fixture:register"));
-        String rotated = token(second, List.of("fixture:register"));
+        String initial = token(first, List.of("patients:register"));
+        String rotated = token(second, List.of("patients:register"));
         context().run(app -> {
             assertThat(app).hasNotFailed().hasSingleBean(RegisterPatientUseCase.class);
             var authorization = app.getBean(RegistrationAuthorization.class);
@@ -138,7 +138,7 @@ class PatientsAuthorizationConfigurationTest {
 
     @Test
     void duplicateBearerHeadersCannotSelectAnIdentity() throws Exception {
-        request(token(first, List.of("fixture:register")));
+        request(token(first, List.of("patients:register")));
         var attributes = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
         ((MockHttpServletRequest) attributes.getRequest()).addHeader("Authorization", "Bearer another-token");
         context().run(app -> failure(app.getBean(RegistrationAuthorization.class), AuthorizationFailure.Reason.UNAUTHORIZED));
@@ -147,7 +147,7 @@ class PatientsAuthorizationConfigurationTest {
 
     @Test
     void lostServiceCredentialFailsClosedAfterStartup() throws Exception {
-        request(token(first, List.of("fixture:register")));
+        request(token(first, List.of("patients:register")));
         context().run(app -> {
             try { Files.delete(credential); }
             catch (Exception failure) { throw new AssertionError(failure); }
@@ -157,7 +157,7 @@ class PatientsAuthorizationConfigurationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"environment=prod", "registration-permission=", "base-url=http://user@localhost",
+    @ValueSource(strings = {"environment=prod", "registration-permission=", "registration-permission=patients:read", "base-url=http://user@localhost",
             "base-url=http://localhost/unexpected", "service-token-file=missing"})
     void invalidConfigurationFailsStartup(String setting) {
         context().withPropertyValues("patients.iam." + setting).run(app -> assertThat(app).hasFailed());
@@ -166,7 +166,7 @@ class PatientsAuthorizationConfigurationTest {
     @ParameterizedTest
     @ValueSource(strings = {"jwks", "jwks-redirect", "sessions"})
     void dependencyFailuresAreSanitized(String dependency) throws Exception {
-        request(token(first, List.of("fixture:register")));
+        request(token(first, List.of("patients:register")));
         if (dependency.equals("jwks")) jwksStatus = 503;
         else if (dependency.equals("jwks-redirect")) jwksStatus = 302;
         else sessionStatus = 401;
@@ -179,7 +179,7 @@ class PatientsAuthorizationConfigurationTest {
                 .withBean(RegistrationTransaction.class, () -> write -> null)
                 .withPropertyValues("patients.iam.base-url=" + origin, "patients.iam.environment=dev",
                         "patients.iam.issuer=fixture-iam", "patients.iam.audience=fixture-audience",
-                        "patients.iam.registration-permission=fixture:register", "patients.iam.service-token-file=" + credential);
+                        "patients.iam.registration-permission=patients:register", "patients.iam.service-token-file=" + credential);
     }
 
     private static void request(String token) {
