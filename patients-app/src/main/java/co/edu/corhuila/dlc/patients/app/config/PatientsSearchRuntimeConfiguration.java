@@ -41,16 +41,14 @@ public class PatientsSearchRuntimeConfiguration {
     @Bean
     PatientSearchAuthorization patientsSearchAuthorization(JwtDecoder decoder, PatientsIamSettings settings,
             IamSessionClient session) {
-        if (settings.searchPermission() == null || settings.searchPermission().isBlank()) {
-            throw new IllegalStateException("Set the Patients search permission");
-        }
+        PatientsIamSettings.requireApprovedPermission(settings.searchPermission(), "patients:read");
         return new JwtPatientSearchAuthorization(decoder, settings.issuer(), settings.audience(), settings.searchPermission(),
                 Clock.systemUTC(), PatientsAuthorizationConfiguration::requestToken, session);
     }
 
     @Bean
     CurrentPatientAssignments patientsCurrentAssignments(PatientsAppointmentsSettings settings, PatientsIamSettings iam,
-            HttpClient patientsAppointmentsHttpClient) {
+            @org.springframework.beans.factory.annotation.Qualifier("patientsAppointmentsHttpClient") HttpClient patientsAppointmentsHttpClient) {
         URI base = appointmentsBase(settings, iam.environment());
         return new AppointmentsAssignmentsClient(base, fileToken(settings.serviceTokenFile()), patientsAppointmentsHttpClient);
     }

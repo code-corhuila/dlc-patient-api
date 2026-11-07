@@ -37,6 +37,7 @@ public class PatientsAuthorizationConfiguration {
     @Bean(destroyMethod = "close")
     HttpClient patientsIamHttpClient(PatientsIamSettings settings) {
         origin(settings);
+        PatientsIamSettings.requireApprovedPermission(settings.registrationPermission(), "patients:register");
         new JwtRegistrationAuthorization.Policy(settings.issuer(), settings.audience(), settings.registrationPermission());
         try { serviceToken(settings.serviceTokenFile()); }
         catch (AuthorizationFailure failure) { throw new IllegalStateException("Set a readable IAM service token file"); }
@@ -45,7 +46,7 @@ public class PatientsAuthorizationConfiguration {
     }
 
     @Bean
-    JwtDecoder patientsStaffJwtDecoder(PatientsIamSettings settings, HttpClient patientsIamHttpClient) {
+    JwtDecoder patientsStaffJwtDecoder(PatientsIamSettings settings, @org.springframework.beans.factory.annotation.Qualifier("patientsIamHttpClient") HttpClient patientsIamHttpClient) {
         URI origin = origin(settings);
         var transport = new JdkClientHttpRequestFactory(patientsIamHttpClient);
         transport.setReadTimeout(Duration.ofSeconds(5));
@@ -68,7 +69,7 @@ public class PatientsAuthorizationConfiguration {
     }
 
     @Bean
-    IamSessionClient patientsIamSessionClient(PatientsIamSettings settings, HttpClient patientsIamHttpClient) {
+    IamSessionClient patientsIamSessionClient(PatientsIamSettings settings, @org.springframework.beans.factory.annotation.Qualifier("patientsIamHttpClient") HttpClient patientsIamHttpClient) {
         URI origin = origin(settings);
         return new IamSessionClient(origin.resolve("/internal/v1/sessions/validations"),
                 () -> serviceToken(settings.serviceTokenFile()), patientsIamHttpClient, "dev".equals(settings.environment()));

@@ -31,7 +31,7 @@ public final class PatientUpdateController {
     }
     @PatchMapping(path="/api/v1/patients/{id}", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> update(@PathVariable("id") String rawId, HttpServletRequest request) {
-        UUID traceId = UUID.randomUUID();
+        UUID traceId = RequestCorrelation.current();
         try {
             authorization.requireAuthorizedActor();
             UUID id = UUID.fromString(rawId);

@@ -30,7 +30,7 @@ public final class PatientSearchController {
             @RequestParam(name = "limit", required = false) String limit,
             @RequestParam(name = "search", required = false) String search,
             @RequestParam(name = "status", required = false) String status) {
-        UUID traceId = UUID.randomUUID();
+        UUID traceId = RequestCorrelation.current();
         try {
             var query = new SearchPatientsUseCase.Query(integer(page, "page"), integer(limit, "limit"), search, status);
             return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(PatientSearchResponse.from(this.search.search(query)));
