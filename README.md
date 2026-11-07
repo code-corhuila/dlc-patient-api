@@ -33,10 +33,15 @@ HTTP registration and concrete authorization remain subsequent increments.
 
 The [registration application increment](registration-use-case.md) adds the use case,
 authorization and atomic transaction ports, with request fingerprinting and replay results.
-Concrete authorization adapters and HTTP wiring remain pending.
+The [authorization adapter](registration-authorization.md) validates JWTs and current IAM sessions.
+Runtime authorization configuration and HTTP wiring remain pending.
 
 The [PostgreSQL registration adapter](registration-persistence.md) now implements atomic
-persistence and replay against the existing schema. Runtime DataSource, IAM and HTTP wiring remain pending.
+persistence and replay against the existing schema. IAM and HTTP wiring remain pending.
+
+The [runtime DataSource configuration](database-runtime.md) wires the pool and transaction
+adapter. Configure the external secret directory before starting Compose; DB configuration
+is now required by default. The health endpoint remains liveness only.
 
 ## Dependencies
 
