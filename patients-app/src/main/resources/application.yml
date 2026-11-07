@@ -7,6 +7,14 @@ server:
   port: ${SERVER_PORT:8080}
   shutdown: graceful
 patients:
+  iam:
+    enabled: ${PATIENTS_IAM_ENABLED:true}
+    environment: ${PATIENTS_IAM_ENVIRONMENT:dev}
+    base-url: ${PATIENTS_IAM_BASE_URL:}
+    issuer: ${PATIENTS_IAM_ISSUER:}
+    audience: ${PATIENTS_IAM_AUDIENCE:}
+    registration-permission: ${PATIENTS_IAM_REGISTRATION_PERMISSION:}
+    service-token-file: ${PATIENTS_IAM_SERVICE_TOKEN_FILE:}
   database:
     enabled: ${PATIENTS_DB_ENABLED:true}
     environment: ${PATIENTS_DB_ENVIRONMENT:dev}
