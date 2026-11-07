@@ -29,12 +29,14 @@ public class PatientsInternalConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "patients.internal", name = "enabled", havingValue = "true")
     WebServerFactoryCustomizer<TomcatServletWebServerFactory> privateConnector(
-            @Value("${patients.internal.port:9091}") int port, @Value("${server.port:8080}") int publicPort) {
+            @Value("${patients.internal.port:9091}") int port, @Value("${server.port:8080}") int publicPort,
+            @Value("${patients.internal.address:127.0.0.1}") String address) {
         if (port < 1 || port > 65535 || port == publicPort) throw new IllegalStateException("Invalid internal port");
+        if (address == null || address.isBlank()) throw new IllegalStateException("Invalid internal address");
         return factory -> {
             var connector = new Connector(TomcatServletWebServerFactory.DEFAULT_PROTOCOL);
             connector.setPort(port);
-            if (!connector.setProperty("address", "127.0.0.1")) throw new IllegalStateException("Cannot bind internal listener to loopback");
+            if (!connector.setProperty("address", address.strip())) throw new IllegalStateException("Cannot bind internal listener");
             factory.addAdditionalTomcatConnectors(connector);
         };
     }

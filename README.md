@@ -4,8 +4,10 @@ Internal patient validation is disabled by default. To enable it, set
 `patients.internal.enabled=true`, `patients.internal.port`,
 `patients.internal.public-key-file` (RSA SubjectPublicKeyInfo PEM, at least 2048 bits),
 `patients.internal.key-id`, `patients.internal.issuer` and
-`patients.internal.audience`. The additional listener binds to 127.0.0.1;
-other services need a separately secured private proxy or a shared network namespace.
+`patients.internal.audience`. The additional listener binds to `patients.internal.address`
+(default 127.0.0.1). In a container on a private network set it to 0.0.0.0, never publish
+the port, and call it by service hostname (for example `http://patients-api:9091`);
+without that, other services need a private proxy or a shared network namespace.
 The public listener rejects internal routes. A dedicated service signing key and
 audience are required; never reuse staff credentials. Key distribution and rotation
 are deployment responsibilities. Tokens require `patients:validate`, an issued-at
