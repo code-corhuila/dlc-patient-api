@@ -1,6 +1,7 @@
 package co.edu.corhuila.dlc.patients.app;
 
 import static org.junit.jupiter.api.Assertions.*;
+import co.edu.corhuila.dlc.patients.application.port.in.ReadBillingContactUseCase;
 import co.edu.corhuila.dlc.patients.application.port.in.ValidatePatientUseCase;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -32,6 +33,9 @@ class PrivateValidationHttpTest {
     @TestConfiguration(proxyBeanMethods = false)
     static class Fixture {
         @Bean ValidatePatientUseCase validation() { return id -> new ValidatePatientUseCase.Result(id, true, 2); }
+        @Bean ReadBillingContactUseCase billingContact() {
+            return id -> new ReadBillingContactUseCase.Contact(id, "ana@example.test", "Ana García");
+        }
     }
     @Test void onlyPrivateListenerAcceptsScopedSignedServiceJwt() throws Exception {
         var generator = KeyPairGenerator.getInstance("RSA"); generator.initialize(2048);
@@ -64,6 +68,16 @@ class PrivateValidationHttpTest {
                         .header("Authorization", "Bearer " + jwt.serialize()).GET().build(), HttpResponse.BodyHandlers.ofString()).statusCode());
                 assertEquals(401, client.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + internalPort + path))
                         .GET().build(), HttpResponse.BodyHandlers.ofString()).statusCode());
+                String contactPath = "http://127.0.0.1:" + internalPort + "/internal/v1/patients/" + id + "/billing-contact";
+                assertEquals(403, client.send(HttpRequest.newBuilder(URI.create(contactPath))
+                        .header("Authorization", "Bearer " + jwt.serialize()).GET().build(), HttpResponse.BodyHandlers.ofString()).statusCode());
+                var contactClaims = new JWTClaimsSet.Builder(claims).subject("dlc-worker")
+                        .claim("scope", "patients:billing-contact:read").build();
+                var contactJwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID("test-key").build(), contactClaims);
+                contactJwt.sign(new RSASSASigner((RSAPrivateKey) keys.getPrivate()));
+                var contact = client.send(HttpRequest.newBuilder(URI.create(contactPath))
+                        .header("Authorization", "Bearer " + contactJwt.serialize()).GET().build(), HttpResponse.BodyHandlers.ofString());
+                assertEquals(200, contact.statusCode()); assertTrue(contact.body().contains("ana@example.test"));
                 assertEquals(404, client.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + internalPort + "/health"))
                         .GET().build(), HttpResponse.BodyHandlers.ofString()).statusCode());
             }

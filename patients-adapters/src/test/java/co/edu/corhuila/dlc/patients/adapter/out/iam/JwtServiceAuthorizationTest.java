@@ -41,4 +41,18 @@ class JwtServiceAuthorizationTest {
                     "service-issuer", "patients", clock).requireValidationScope());
         }
     }
+    @Test void billingContactNeedsItsOwnScope() throws Exception {
+        var generator = KeyPairGenerator.getInstance("RSA"); generator.initialize(2048);
+        var keys = generator.generateKeyPair();
+        var decoder = JwtRegistrationAuthorization.rsaDecoder((RSAPublicKey) keys.getPublic(), "service-key", clock);
+        var granted = token((RSAPrivateKey) keys.getPrivate(), "patients", "patients:billing-contact:read", false);
+        var validateOnly = token((RSAPrivateKey) keys.getPrivate(), "patients", "patients:validate", false);
+        assertDoesNotThrow(() -> new JwtServiceAuthorization(decoder, () -> granted, "service-issuer", "patients", clock)
+                .requireBillingContactScope());
+        var denied = assertThrows(AuthorizationFailure.class, () -> new JwtServiceAuthorization(decoder,
+                () -> validateOnly, "service-issuer", "patients", clock).requireBillingContactScope());
+        assertEquals(AuthorizationFailure.Reason.FORBIDDEN, denied.reason());
+        assertThrows(AuthorizationFailure.class, () -> new JwtServiceAuthorization(decoder, () -> granted,
+                "service-issuer", "patients", clock).requireValidationScope());
+    }
 }

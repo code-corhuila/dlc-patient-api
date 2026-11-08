@@ -22,7 +22,9 @@ public final class JwtServiceAuthorization implements PatientServiceAuthorizatio
         if (issuer == null || issuer.isBlank() || audience == null || audience.isBlank()) throw new IllegalArgumentException();
         this.issuer = issuer; this.audience = audience;
     }
-    @Override public void requireValidationScope() {
+    @Override public void requireValidationScope() { require("patients:validate"); }
+    @Override public void requireBillingContactScope() { require("patients:billing-contact:read"); }
+    private void require(String required) {
         try {
             String value = token.get();
             if (value == null || value.isBlank()) throw fail(AuthorizationFailure.Reason.UNAUTHORIZED);
@@ -35,8 +37,8 @@ public final class JwtServiceAuthorization implements PatientServiceAuthorizatio
                     || Duration.between(issued, expiry).compareTo(Duration.ofHours(1)) > 0
                     || jwt.hasClaim("sid") || jwt.hasClaim("roles")) throw fail(AuthorizationFailure.Reason.UNAUTHORIZED);
             Object scope = jwt.getClaim("scope"), scp = jwt.getClaim("scp");
-            boolean allowed = scope instanceof String s && Arrays.asList(s.split("\\s+")).contains("patients:validate")
-                    || scp instanceof java.util.List<?> list && list.contains("patients:validate");
+            boolean allowed = scope instanceof String s && Arrays.asList(s.split("\\s+")).contains(required)
+                    || scp instanceof java.util.List<?> list && list.contains(required);
             if (!allowed) throw fail(AuthorizationFailure.Reason.FORBIDDEN);
         } catch (BadJwtException | IllegalArgumentException failure) {
             throw fail(AuthorizationFailure.Reason.UNAUTHORIZED);

@@ -4,7 +4,11 @@ import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcRegistrationTran
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientReadReader;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcPatientValidationReader;
 import co.edu.corhuila.dlc.patients.application.port.out.PatientValidationReader;
+import co.edu.corhuila.dlc.patients.application.port.in.ReadBillingContactUseCase;
 import co.edu.corhuila.dlc.patients.application.port.in.ValidatePatientUseCase;
+import co.edu.corhuila.dlc.patients.application.port.out.BillingContactReader;
+import co.edu.corhuila.dlc.patients.application.usecase.BillingContactService;
+import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcBillingContactReader;
 import co.edu.corhuila.dlc.patients.application.usecase.PatientValidationService;
 import co.edu.corhuila.dlc.patients.adapter.out.persistence.JdbcDeactivationIntentStore;
 import co.edu.corhuila.dlc.patients.application.port.out.DeactivationIntentStore;
@@ -87,6 +91,16 @@ public class PatientsDataSourceConfiguration {
     @Bean
     ValidatePatientUseCase patientsValidatePatientUseCase(PatientValidationReader reader) {
         return new PatientValidationService(reader);
+    }
+
+    @Bean
+    BillingContactReader patientsBillingContactReader(DataSource source) {
+        return new JdbcBillingContactReader(source);
+    }
+
+    @Bean
+    ReadBillingContactUseCase patientsReadBillingContactUseCase(BillingContactReader reader) {
+        return new BillingContactService(reader);
     }
 
     @Bean
