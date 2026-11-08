@@ -14,6 +14,13 @@ are deployment responsibilities. Tokens require `patients:validate`, an issued-a
 and expiry at most one hour apart, and no staff session or roles claims.
 The listener must not be published by the public Gateway.
 
+For a private Docker integration, use the commented `PATIENTS_INTERNAL_*`
+settings in `.env.example`, mount the service public key in the existing IAM
+secrets directory, and point the Clinical and Appointments owner clients to
+`http://patients-api:9091`. Keep the public API on port 8080. The internal
+listener accepts only a scoped service JWT; an ordinary staff JWT cannot use it.
+The caller must refresh its short-lived service token before it expires.
+
 > Patients bounded context: service API.
 
 Part of the **Di-lucca** distributed system — team `di-lucca`, Grupo 2.
