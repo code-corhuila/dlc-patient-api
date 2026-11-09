@@ -17,6 +17,10 @@ patients:
     search-permission: ${PATIENTS_IAM_SEARCH_PERMISSION:patients:read}
     update-permission: ${PATIENTS_IAM_UPDATE_PERMISSION:patients:write}
     service-token-file: ${PATIENTS_IAM_SERVICE_TOKEN_FILE:}
+  # ADR-020: with a secret file, service tokens are issued by IAM (PATIENTS_IAM_BASE_URL) instead of read from files.
+  service-client:
+    id: ${PATIENTS_SERVICE_CLIENT_ID:patients-api}
+    secret-file: ${PATIENTS_SERVICE_CLIENT_SECRET_FILE:}
   search:
     enabled: ${PATIENTS_SEARCH_ENABLED:true}
   update:
