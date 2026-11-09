@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties({PatientsAppointmentsSettings.class, PatientsIamSettings.class})
+@EnableConfigurationProperties({PatientsServiceClientSettings.class, PatientsAppointmentsSettings.class, PatientsIamSettings.class})
 @ConditionalOnProperty(prefix = "patients.search", name = "enabled", havingValue = "true", matchIfMissing = true)
 @ConditionalOnBean({PatientSearchReader.class, JwtDecoder.class})
 public class PatientsSearchRuntimeConfiguration {
@@ -48,9 +48,13 @@ public class PatientsSearchRuntimeConfiguration {
 
     @Bean
     CurrentPatientAssignments patientsCurrentAssignments(PatientsAppointmentsSettings settings, PatientsIamSettings iam,
+            PatientsServiceClientSettings client,
             @org.springframework.beans.factory.annotation.Qualifier("patientsAppointmentsHttpClient") HttpClient patientsAppointmentsHttpClient) {
         URI base = appointmentsBase(settings, iam.environment());
-        return new AppointmentsAssignmentsClient(base, fileToken(settings.serviceTokenFile()), patientsAppointmentsHttpClient);
+        Supplier<String> token = client.issuesTokens()
+                ? PatientsAuthorizationConfiguration.issuedToken(iam, client, "appointments-api", "assignments:read")
+                : fileToken(settings.serviceTokenFile());
+        return new AppointmentsAssignmentsClient(base, token, patientsAppointmentsHttpClient);
     }
 
     @Bean

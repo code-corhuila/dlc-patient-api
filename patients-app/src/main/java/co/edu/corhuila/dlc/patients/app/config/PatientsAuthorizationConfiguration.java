@@ -1,5 +1,6 @@
 package co.edu.corhuila.dlc.patients.app.config;
 
+import co.edu.corhuila.dlc.patients.adapter.out.iam.IamServiceTokenSupplier;
 import co.edu.corhuila.dlc.patients.adapter.out.iam.IamSessionClient;
 import co.edu.corhuila.dlc.patients.adapter.out.iam.JwtRegistrationAuthorization;
 import co.edu.corhuila.dlc.patients.application.model.AuthorizationFailure;
@@ -17,6 +18,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -31,15 +33,15 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(PatientsIamSettings.class)
+@EnableConfigurationProperties({PatientsIamSettings.class, PatientsServiceClientSettings.class})
 @ConditionalOnProperty(prefix = "patients.iam", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class PatientsAuthorizationConfiguration {
     @Bean(destroyMethod = "close")
-    HttpClient patientsIamHttpClient(PatientsIamSettings settings) {
+    HttpClient patientsIamHttpClient(PatientsIamSettings settings, PatientsServiceClientSettings client) {
         origin(settings);
         PatientsIamSettings.requireApprovedPermission(settings.registrationPermission(), "patients:register");
         new JwtRegistrationAuthorization.Policy(settings.issuer(), settings.audience(), settings.registrationPermission());
-        try { serviceToken(settings.serviceTokenFile()); }
+        if (!client.issuesTokens()) try { serviceToken(settings.serviceTokenFile()); }
         catch (AuthorizationFailure failure) { throw new IllegalStateException("Set a readable IAM service token file"); }
         return HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5))
                 .followRedirects(HttpClient.Redirect.NEVER).build();
@@ -69,10 +71,26 @@ public class PatientsAuthorizationConfiguration {
     }
 
     @Bean
-    IamSessionClient patientsIamSessionClient(PatientsIamSettings settings, @org.springframework.beans.factory.annotation.Qualifier("patientsIamHttpClient") HttpClient patientsIamHttpClient) {
+    IamSessionClient patientsIamSessionClient(PatientsIamSettings settings, PatientsServiceClientSettings client,
+            @org.springframework.beans.factory.annotation.Qualifier("patientsIamHttpClient") HttpClient patientsIamHttpClient) {
         URI origin = origin(settings);
+        Supplier<String> token = () -> serviceToken(settings.serviceTokenFile());
+        if (client.issuesTokens()) {
+            var issued = issuedToken(settings, client, "auth-service", "identity:validate");
+            token = () -> {
+                try { return issued.get(); }
+                catch (IllegalStateException failure) { throw new AuthorizationFailure(AuthorizationFailure.Reason.SERVICE_UNAVAILABLE); }
+            };
+        }
         return new IamSessionClient(origin.resolve("/internal/v1/sessions/validations"),
-                () -> serviceToken(settings.serviceTokenFile()), patientsIamHttpClient, "dev".equals(settings.environment()));
+                token, patientsIamHttpClient, "dev".equals(settings.environment()));
+    }
+
+    /** ADR-020: a token issued by IAM (the configured IAM origin) for one audience, by client credentials. */
+    static Supplier<String> issuedToken(PatientsIamSettings settings, PatientsServiceClientSettings client,
+            String audience, String scope) {
+        return new IamServiceTokenSupplier(origin(settings), client.id(), Path.of(client.secretFile()), audience, scope,
+                Duration.ofSeconds(5), Clock.systemUTC());
     }
 
     @Bean
