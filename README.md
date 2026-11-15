@@ -1,25 +1,118 @@
-# dlc-iam-api
+# dlc-patient-api
 
-> iam bounded context: service API
+Internal patient validation is disabled by default. To enable it, set
+`patients.internal.enabled=true`, `patients.internal.port`,
+`patients.internal.public-key-file` (RSA SubjectPublicKeyInfo PEM, at least 2048 bits),
+`patients.internal.key-id`, `patients.internal.issuer` and
+`patients.internal.audience`. The additional listener binds to `patients.internal.address`
+(default 127.0.0.1). In a container on a private network set it to 0.0.0.0, never publish
+the port, and call it by service hostname (for example `http://patients-api:9091`);
+without that, other services need a private proxy or a shared network namespace.
+The public listener rejects internal routes. A dedicated service signing key and
+audience are required; never reuse staff credentials. Key distribution and rotation
+are deployment responsibilities. Tokens require `patients:validate`, an issued-at
+and expiry at most one hour apart, and no staff session or roles claims.
+The listener must not be published by the public Gateway.
 
-Part of the **LMS Library** distributed system — team `lms-library`, Grupo 2.
-Governance and documentation live in [`library-docs`](https://github.com/code-corhuila/library-docs).
+For a private Docker integration, use the commented `PATIENTS_INTERNAL_*`
+settings in `.env.example`, mount the service public key in the existing IAM
+secrets directory, and point the Clinical and Appointments owner clients to
+`http://patients-api:9091`. Keep the public API on port 8080. The internal
+listener accepts only a scoped service JWT; an ordinary staff JWT cannot use it.
+The caller must refresh its short-lived service token before it expires.
+
+> Patients bounded context: service API.
+
+Part of the **Di-lucca** distributed system — team `di-lucca`, Grupo 2.
+Governance and documentation live in [`dlc-docs`](https://github.com/code-corhuila/dlc-docs);
+the service is described in `09-microservices/services/03-patients-service/` and its
+contract in `07-api/contracts/openapi/patients-service.yaml`.
+
+## Purpose
+
+Owns the unique patient identity, the administrative and contact profile, emergency
+contacts and the active/inactive status (HU-PAT-001). Clinical history belongs to Clinical,
+staff accounts to IAM and appointments to Appointments.
+
+## Architecture
+
+Java 21 and Spring Boot 3.5 (ADR-003), hexagonal with three Maven modules (Norma 5.3, Annex C):
+
+| Module | Content | Depends on |
+|---|---|---|
+| `patients-core` | domain model, ports and use cases | nothing from the project; Spring, JPA, JDBC, AMQP and Jackson are banned by the enforcer |
+| `patients-adapters` | HTTP, persistence, messaging and owner clients | `patients-core` |
+| `patients-app` | composition root, configuration and limits | everything |
+
+## Current increment
+
+The first HU-PAT-001 domain increment lives in `patients-core`: an immutable
+registration aggregate, administrative profile, document and emergency contacts,
+with contract/storage field validation and an injected registration clock.
+See [scope, contract references and TDD evidence](registration-domain.md).
+HTTP registration and concrete authorization remain subsequent increments.
+
+The [registration application increment](registration-use-case.md) adds the use case,
+authorization and atomic transaction ports, with request fingerprinting and replay results.
+The [authorization adapter](registration-authorization.md) validates JWTs and current IAM sessions.
+The [IAM runtime connection](authorization-runtime.md) wires authorization and the registration
+use case with remote JWKS and session validation. The [registration HTTP boundary](registration-http.md)
+now exposes POST `/api/v1/patients`; deployed IAM verification and the remaining patient routes are pending.
+
+The [PostgreSQL registration adapter](registration-persistence.md) now implements atomic
+persistence and replay against the existing schema. IAM and HTTP wiring remain pending.
+
+The [runtime DataSource configuration](database-runtime.md) wires the pool and transaction
+adapter. Configure the external secret directory before starting Compose; DB configuration
+is now required by default. The health endpoint remains liveness only.
+
+The [administrative search use case](administrative-search-use-case.md) adds paginated, scope-aware
+reads and minimal Dentist projections in the core.
+The [search persistence adapter](administrative-search-persistence.md) provides scoped PostgreSQL reads;
+authorization/assignment adapters, runtime composition and the GET route remain pending.
+The [search runtime connection](search-runtime.md) now composes authorization and current assignments;
+the GET route remains pending.
+
+## Dependencies
+
+- PostgreSQL instance from [`dlc-infra-postgres`](https://github.com/code-corhuila/dlc-infra-postgres),
+  with the `patients` schema migrated by [`dlc-patient-db`](https://github.com/code-corhuila/dlc-patient-db).
+  This repository holds no migrations (Norma 5.2.1).
+- Staff JWT and session validation from `dlc-iam-api`.
+- Appointments owner contracts for current care relationships and the deactivation guard.
+
+## Run
+
+Build and test (Java 21 and Maven 3.9):
+
+```bash
+mvn -B verify
+```
+
+Without a local Maven, the same build runs in Docker:
+
+```bash
+docker run --rm -v "$PWD:/workspace" -w /workspace maven:3.9.11-eclipse-temurin-21 mvn -B verify
+```
+
+Start the service on the shared `platform` network:
+
+```bash
+cp .env.example .env
+docker compose --env-file .env -f deploy/compose.yml up -d --build --wait
+```
+
+`GET /health` answers `200` without a token.
 
 ## Branching
 
-Three permanent branches. **None of them accepts a direct commit** — you enter through a child
-branch and leave through a Pull Request.
+Three permanent branches; none accepts a direct commit.
 
 ```
-develop  <--PR--  feat/... fix/... chore/...
-qa       <--PR--  qa/...
+develop  <--PR--  feat/... fix/... chore/... docs/...
+qa       <--PR--  promotion/qa-patient-api-N (cherry-pick -x of develop commits)
 main     <--PR--  release/...  hotfix/...
 ```
 
-Promotion happens **by re-application** (`git cherry-pick -x`), never by merging one permanent
-branch into another: `merge develop -> qa` and `merge qa -> main` do not exist in this model.
-
-`main` requires **1 approval from `ariel5253`**. On `develop` and `qa` the team sets its own review
-rule.
-
-Full policy: `00-governance/branching-policy.md` in `library-docs`.
+Promotion happens by re-application (`git cherry-pick -x`), never by merging one permanent
+branch into another. `main` requires the teacher's approval (`.github/CODEOWNERS`).

@@ -1,0 +1,48 @@
+# Service only: the database lives in dlc-infra-postgres (Annex J.3.1) and its schema in dlc-patient-db.
+services:
+  patients-api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: dlc-patient-api:local
+    restart: unless-stopped
+    stop_grace_period: 30s
+    env_file: ../.env
+    environment:
+      PATIENTS_DB_PASSWORD_FILE: /run/secrets/patients/password
+      PATIENTS_IAM_SERVICE_TOKEN_FILE: /run/secrets/iam/service-token
+      PATIENTS_APPOINTMENTS_SERVICE_TOKEN_FILE: /run/secrets/appointments/service-token
+    volumes:
+      - type: bind
+        source: ${PATIENTS_IAM_SECRETS_DIR:?set PATIENTS_IAM_SECRETS_DIR}
+        target: /run/secrets/iam
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${PATIENTS_DB_SECRETS_DIR:?set PATIENTS_DB_SECRETS_DIR}
+        target: /run/secrets/patients
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${PATIENTS_APPOINTMENTS_SECRETS_DIR:?set PATIENTS_APPOINTMENTS_SECRETS_DIR}
+        target: /run/secrets/appointments
+        read_only: true
+        bind:
+          create_host_path: false
+    expose:
+      - "${SERVER_PORT:-8080}"
+    healthcheck:
+      # The JRE image has no curl; bash (not dash) provides /dev/tcp.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/${SERVER_PORT:-8080} && printf 'GET /ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [platform]
+
+networks:
+  platform:
+    name: ${PLATFORM_NETWORK:-platform}
+    external: true

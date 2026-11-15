@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: dlc-patient-api
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+patients:
+  iam:
+    enabled: ${PATIENTS_IAM_ENABLED:true}
+    environment: ${PATIENTS_IAM_ENVIRONMENT:dev}
+    base-url: ${PATIENTS_IAM_BASE_URL:}
+    issuer: ${PATIENTS_IAM_ISSUER:}
+    audience: ${PATIENTS_IAM_AUDIENCE:}
+    registration-permission: ${PATIENTS_IAM_REGISTRATION_PERMISSION:patients:register}
+    search-permission: ${PATIENTS_IAM_SEARCH_PERMISSION:patients:read}
+    update-permission: ${PATIENTS_IAM_UPDATE_PERMISSION:patients:write}
+    service-token-file: ${PATIENTS_IAM_SERVICE_TOKEN_FILE:}
+  # ADR-020: with a secret file, service tokens are issued by IAM (PATIENTS_IAM_BASE_URL) instead of read from files.
+  service-client:
+    id: ${PATIENTS_SERVICE_CLIENT_ID:patients-api}
+    secret-file: ${PATIENTS_SERVICE_CLIENT_SECRET_FILE:}
+  search:
+    enabled: ${PATIENTS_SEARCH_ENABLED:true}
+  update:
+    enabled: ${PATIENTS_UPDATE_ENABLED:false}
+  appointments:
+    base-url: ${PATIENTS_APPOINTMENTS_BASE_URL:}
+    service-token-file: ${PATIENTS_APPOINTMENTS_SERVICE_TOKEN_FILE:}
+  database:
+    enabled: ${PATIENTS_DB_ENABLED:true}
+    environment: ${PATIENTS_DB_ENVIRONMENT:dev}
+    host: ${PATIENTS_DB_HOST:}
+    port: ${PATIENTS_DB_PORT:5432}
+    name: ${PATIENTS_DB_NAME:}
+    password-file: ${PATIENTS_DB_PASSWORD_FILE:}
+    ssl-mode: ${PATIENTS_DB_SSLMODE:verify-full}
+    ssl-root-cert: ${PATIENTS_DB_SSLROOTCERT:}
